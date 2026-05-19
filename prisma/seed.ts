@@ -32,14 +32,24 @@ async function main() {
     });
   }
 
-  const passwordHash = await bcrypt.hash("hayaa2024", 12);
+  // Admin credentials come from env — never hardcode a password in the repo.
+  const username = process.env.ADMIN_USERNAME?.trim() || "admin";
+  const password = process.env.ADMIN_PASSWORD;
+  if (!password || password.length < 8) {
+    throw new Error(
+      "ADMIN_PASSWORD must be set and at least 8 characters (12+ recommended)."
+    );
+  }
+
+  const passwordHash = await bcrypt.hash(password, 12);
   await prisma.adminUser.upsert({
-    where: { username: "admin" },
-    update: {},
-    create: { username: "admin", passwordHash },
+    where: { username },
+    // Re-apply the hash so ADMIN_PASSWORD stays the single source of truth.
+    update: { passwordHash },
+    create: { username, passwordHash },
   });
 
-  console.log("✅ Seeded: 5 categories + admin user (admin / hayaa2024)");
+  console.log(`✅ Seeded: 5 categories + admin user (${username})`);
 }
 
 main()
