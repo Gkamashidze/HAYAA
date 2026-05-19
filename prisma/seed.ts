@@ -1,5 +1,10 @@
-import "dotenv/config";
+import dotenv from "dotenv";
 import { PrismaClient } from "../app/generated/prisma/client";
+
+// Load .env.local first (local dev), then .env. Railway's real env vars are not overridden.
+dotenv.config({ path: ".env.local" });
+dotenv.config();
+
 import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
 
