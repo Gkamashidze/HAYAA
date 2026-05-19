@@ -5,7 +5,6 @@ const nextConfig: NextConfig = {
     remotePatterns: [],
     localPatterns: [{ pathname: "/uploads/**" }],
   },
-  serverExternalPackages: ["better-sqlite3"],
 };
 
 export default nextConfig;

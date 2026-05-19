@@ -6,7 +6,7 @@ E-commerce website for **HAYAA** — *Where Modesty Meets Luxury*. A modest wome
 
 - **Next.js 16** (App Router) + **TypeScript**
 - **Tailwind CSS v4**
-- **Prisma 7** + **SQLite** (local) — switchable to PostgreSQL for production
+- **Prisma 7** + **PostgreSQL**
 - **NextAuth v5** — credentials-based admin authentication
 
 ## Features
@@ -22,7 +22,10 @@ E-commerce website for **HAYAA** — *Where Modesty Meets Luxury*. A modest wome
 - Category management
 - Stats overview
 
-## Getting Started
+## Local Development
+
+Requires a PostgreSQL database. The easiest option is to create one on
+[Railway](https://railway.app) and use its public connection string.
 
 ```bash
 # 1. Install dependencies
@@ -30,11 +33,10 @@ npm install
 
 # 2. Set up environment variables
 cp .env.local.example .env.local
-# then edit .env.local with your values
+# then edit .env.local — paste your PostgreSQL DATABASE_URL
 
-# 3. Create the database and seed it
-npm run db:push
-npm run db:seed
+# 3. Create the schema and seed initial data
+npm run db:deploy
 
 # 4. Run the dev server
 npm run dev
@@ -42,17 +44,34 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+## Deploying to Railway
+
+1. Create a new project on Railway and add a **PostgreSQL** database.
+2. Add a service from this GitHub repo. Railway auto-detects Next.js.
+3. In the service **Variables**, reference the database and set the rest:
+   - `DATABASE_URL` → reference the PostgreSQL service's connection variable
+   - `AUTH_SECRET` → run `openssl rand -base64 32` and paste the result
+   - `NEXT_PUBLIC_WHATSAPP_NUMBER` → your WhatsApp number (country code + number)
+   - `NEXT_PUBLIC_MESSENGER_PAGE` → your Facebook Page username
+4. Deploy. `railway.json` runs `npm run db:deploy` before each release —
+   this syncs the database schema and seeds categories + the admin user.
+
 ## Admin Access
 
 - URL: `/admin/login`
-- Default credentials: `admin` / `hayaa2024` (change before deploying)
+- Default credentials: `admin` / `hayaa2024` — **change this before going live.**
 
 ## Environment Variables
 
 | Variable | Description |
 |---|---|
-| `DATABASE_URL` | Database connection string |
-| `NEXTAUTH_SECRET` | Secret for session encryption |
-| `NEXTAUTH_URL` | App base URL |
+| `DATABASE_URL` | PostgreSQL connection string |
+| `AUTH_SECRET` | Secret for session encryption (`openssl rand -base64 32`) |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER` | WhatsApp number for orders (country code + number) |
 | `NEXT_PUBLIC_MESSENGER_PAGE` | Facebook Page username for Messenger orders |
+
+## Notes
+
+- Product images upload to `public/uploads/`. Railway's filesystem is
+  ephemeral — for persistent images, attach a Railway volume mounted at
+  `public/uploads` or switch to an external store (e.g. Cloudinary).
