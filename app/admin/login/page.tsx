@@ -2,10 +2,8 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 
 export default function AdminLoginPage() {
-  const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -17,14 +15,21 @@ export default function AdminLoginPage() {
     setLoading(true);
     try {
       const result = await signIn("credentials", {
-        username, password, redirect: false,
+        username,
+        password,
+        redirect: false,
       });
       if (result?.error) {
         setError("Invalid username or password.");
-      } else {
-        router.push("/admin");
+        setLoading(false);
+        return;
       }
-    } finally {
+      // Hard navigation: a soft router.push keeps the App Router's pre-login
+      // cache, so the new session is not reflected. A full load picks up the
+      // freshly-set session cookie and clears middleware redirects.
+      window.location.assign("/admin");
+    } catch {
+      setError("Something went wrong. Please try again.");
       setLoading(false);
     }
   };
