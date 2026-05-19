@@ -9,7 +9,7 @@ import type { CartItem } from "@/lib/messaging";
 export default function CartPage() {
   const { items, removeItem, updateQuantity, clearCart, totalPrice } = useCart();
 
-  const currency = items[0]?.currency ?? "GEL";
+  const currency = items[0]?.currency ?? "USD";
 
   const messagingItems: CartItem[] = items.map((i) => ({
     id: i.id, name: i.name, price: i.price,

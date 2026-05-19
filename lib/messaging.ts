@@ -15,7 +15,7 @@ function buildOrderText(items: CartItem[]): string {
     (i) => `• ${i.name} x${i.quantity} — ${(i.price * i.quantity).toFixed(2)} ${i.currency}`
   );
   const total = items.reduce((s, i) => s + i.price * i.quantity, 0);
-  const currency = items[0]?.currency ?? "GEL";
+  const currency = items[0]?.currency ?? "USD";
   return [
     "Hello! I'd like to order from HAYAA 🛍️",
     "",

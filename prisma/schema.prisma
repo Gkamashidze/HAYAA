@@ -21,7 +21,7 @@ model Product {
   name        String
   description String?
   price       Float
-  currency    String   @default("GEL")
+  currency    String   @default("USD")
   images      String   @default("[]")
   categoryId  Int
   category    Category @relation(fields: [categoryId], references: [id])

@@ -121,7 +121,7 @@ export default function CartDrawer({ open, onClose }: Props) {
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
               <span style={{ fontWeight: 600 }}>Total</span>
               <span style={{ fontWeight: 700, color: "var(--primary)", fontSize: 16 }}>
-                {totalPrice.toFixed(2)} {items[0]?.currency ?? "GEL"}
+                {totalPrice.toFixed(2)} {items[0]?.currency ?? "USD"}
               </span>
             </div>
             <Link href="/cart" onClick={onClose} style={{

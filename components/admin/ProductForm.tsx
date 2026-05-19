@@ -25,7 +25,7 @@ export default function ProductForm({ initialData, mode }: Props) {
     name: initialData?.name ?? "",
     description: initialData?.description ?? "",
     price: initialData?.price ?? "",
-    currency: initialData?.currency ?? "GEL",
+    currency: initialData?.currency ?? "USD",
     categoryId: initialData?.categoryId ?? "",
     inStock: initialData?.inStock ?? true,
     featured: initialData?.featured ?? false,
@@ -112,7 +112,6 @@ export default function ProductForm({ initialData, mode }: Props) {
         <div>
           <label style={labelStyle}>Currency</label>
           <select style={inputStyle} value={form.currency} onChange={(e) => set("currency", e.target.value)}>
-            <option value="GEL">GEL (₾)</option>
             <option value="USD">USD ($)</option>
             <option value="EUR">EUR (€)</option>
           </select>

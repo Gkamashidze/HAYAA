@@ -87,7 +87,7 @@ export function validateProductCreate(body: unknown): Validated<ProductData> {
       name: name.data,
       description: typeof b.description === "string" ? b.description : null,
       price: price.data,
-      currency: typeof b.currency === "string" ? b.currency.slice(0, 8) : "GEL",
+      currency: typeof b.currency === "string" ? b.currency.slice(0, 8) : "USD",
       images: images.data,
       categoryId: categoryId.data,
       inStock: b.inStock !== false,
