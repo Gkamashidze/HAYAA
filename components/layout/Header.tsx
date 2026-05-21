@@ -19,7 +19,6 @@ const childDropdown: { href: string; label: string }[] = categoryNav
   .map((c) => ({ href: `/category/${c.slug}`, label: c.label }));
 
 const navLinks: NavLink[] = [
-  { href: "/", label: "Home" },
   { href: "/products", label: "All Products" },
   ...categoryNav
     .filter((c) => c.inHeader !== false)
@@ -44,8 +43,8 @@ export default function Header() {
       <header style={{ background: "white", borderBottom: "1px solid var(--border-color)" }} className="sticky top-0 z-40">
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 1.5rem" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 70 }}>
-            {/* Logo */}
-            <Link href="/" style={{ textDecoration: "none" }}>
+            {/* Logo — also serves as Home link */}
+            <Link href="/" aria-label="Home" style={{ textDecoration: "none" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{
                   width: 44, height: 44, borderRadius: "50%",
