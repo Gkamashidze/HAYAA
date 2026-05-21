@@ -18,8 +18,8 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
   const categories = [
     { name: "Islamic Clothing", slug: "islamic-clothing" },
-    { name: "Children's Clothing", slug: "childrens-clothing" },
-    { name: "Children's Toys", slug: "childrens-toys" },
+    { name: "Kids Clothing", slug: "childrens-clothing" },
+    { name: "Kids Toys", slug: "childrens-toys" },
     { name: "Home Electronics", slug: "home-electronics" },
     { name: "Perfumery", slug: "perfumery" },
     { name: "Makeup", slug: "makeup" },
@@ -29,7 +29,7 @@ async function main() {
   for (const cat of categories) {
     await prisma.category.upsert({
       where: { slug: cat.slug },
-      update: {},
+      update: { name: cat.name },
       create: cat,
     });
   }
