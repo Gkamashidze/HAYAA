@@ -19,6 +19,8 @@ async function main() {
   const categories = [
     { name: "Islamic Clothing", slug: "islamic-clothing" },
     { name: "Children's Clothing", slug: "childrens-clothing" },
+    { name: "Children's Toys", slug: "childrens-toys" },
+    { name: "Home Electronics", slug: "home-electronics" },
     { name: "Perfumery", slug: "perfumery" },
     { name: "Makeup", slug: "makeup" },
     { name: "Other", slug: "other" },
@@ -49,7 +51,7 @@ async function main() {
     create: { username, passwordHash },
   });
 
-  console.log(`✅ Seeded: 5 categories + admin user (${username})`);
+  console.log(`✅ Seeded: ${categories.length} categories + admin user (${username})`);
 }
 
 main()

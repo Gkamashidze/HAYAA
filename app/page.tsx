@@ -8,6 +8,8 @@ import type { Product } from "@/types";
 const categoryIcons: Record<string, string> = {
   "islamic-clothing": "🧕",
   "childrens-clothing": "👧",
+  "childrens-toys": "🧸",
+  "home-electronics": "📺",
   "perfumery": "🌹",
   "makeup": "💄",
   "other": "✨",
