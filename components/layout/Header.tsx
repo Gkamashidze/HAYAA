@@ -5,16 +5,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import CartDrawer from "@/components/cart/CartDrawer";
+import { categoryNav } from "@/lib/categories";
 
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/products", label: "All Products" },
-  { href: "/category/islamic-clothing", label: "Islamic Clothing" },
-  { href: "/category/childrens-clothing", label: "Kids" },
-  { href: "/category/childrens-toys", label: "Kids Toys" },
-  { href: "/category/home-electronics", label: "Home Electronics" },
-  { href: "/category/perfumery", label: "Perfumery" },
-  { href: "/category/makeup", label: "Makeup" },
+  ...categoryNav
+    .filter((c) => c.inHeader !== false)
+    .map((c) => ({ href: `/category/${c.slug}`, label: c.label })),
 ];
 
 export default function Header() {

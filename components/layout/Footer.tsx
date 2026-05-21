@@ -1,9 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { categoryNav } from "@/lib/categories";
 
 const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "995000000000";
 const MESSENGER = process.env.NEXT_PUBLIC_MESSENGER_PAGE ?? "hayaastore";
+
+const footerCategoryLinks = categoryNav.map((c) => ({
+  href: `/category/${c.slug}`,
+  label: c.label,
+}));
 
 export default function Footer() {
   return (
@@ -34,13 +40,7 @@ export default function Footer() {
           {/* Categories */}
           <div>
             <h3 style={{ color: "white", fontSize: 14, fontWeight: 600, marginBottom: 12, letterSpacing: "0.05em", textTransform: "uppercase" }}>Categories</h3>
-            {[
-              { href: "/category/islamic-clothing", label: "Islamic Clothing" },
-              { href: "/category/childrens-clothing", label: "Children's Clothing" },
-              { href: "/category/perfumery", label: "Perfumery" },
-              { href: "/category/makeup", label: "Makeup" },
-              { href: "/category/other", label: "Other" },
-            ].map((l) => (
+            {footerCategoryLinks.map((l) => (
               <Link key={l.href} href={l.href} style={{ display: "block", color: "#aaa", textDecoration: "none", fontSize: 13, marginBottom: 6, transition: "color 0.2s" }}
                 onMouseEnter={(e) => (e.currentTarget.style.color = "white")}
                 onMouseLeave={(e) => (e.currentTarget.style.color = "#aaa")}>

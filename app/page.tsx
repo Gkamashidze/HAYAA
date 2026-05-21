@@ -1,19 +1,10 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { categoryIcons } from "@/lib/categories";
 
 export const dynamic = "force-dynamic";
 import ProductCard from "@/components/products/ProductCard";
 import type { Product } from "@/types";
-
-const categoryIcons: Record<string, string> = {
-  "islamic-clothing": "🧕",
-  "childrens-clothing": "👧",
-  "childrens-toys": "🧸",
-  "home-electronics": "📺",
-  "perfumery": "🌹",
-  "makeup": "💄",
-  "other": "✨",
-};
 
 async function getCategories() {
   return prisma.category.findMany({ orderBy: { id: "asc" } });
