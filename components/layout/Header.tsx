@@ -7,12 +7,28 @@ import { useCart } from "@/context/CartContext";
 import CartDrawer from "@/components/cart/CartDrawer";
 import { categoryNav } from "@/lib/categories";
 
-const navLinks = [
+type NavLink = {
+  href: string;
+  label: string;
+  slug?: string;
+  children?: { href: string; label: string }[];
+};
+
+const childDropdown: { href: string; label: string }[] = categoryNav
+  .filter((c) => c.slug === "childrens-toys")
+  .map((c) => ({ href: `/category/${c.slug}`, label: c.label }));
+
+const navLinks: NavLink[] = [
   { href: "/", label: "Home" },
   { href: "/products", label: "All Products" },
   ...categoryNav
     .filter((c) => c.inHeader !== false)
-    .map((c) => ({ href: `/category/${c.slug}`, label: c.label })),
+    .map((c) => ({
+      href: `/category/${c.slug}`,
+      label: c.label,
+      slug: c.slug,
+      children: c.slug === "childrens-clothing" ? childDropdown : undefined,
+    })),
 ];
 
 export default function Header() {
@@ -20,6 +36,8 @@ export default function Header() {
   const { totalItems } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
 
   return (
     <>
@@ -46,19 +64,70 @@ export default function Header() {
 
             {/* Desktop Nav */}
             <nav style={{ display: "flex", gap: "1.5rem", alignItems: "center" }} className="hidden md:flex">
-              {navLinks.map((link) => (
-                <Link key={link.href} href={link.href} style={{
-                  textDecoration: "none",
-                  fontSize: "0.85rem",
-                  color: pathname === link.href ? "var(--primary)" : "#1A1A1A",
-                  fontWeight: pathname === link.href ? 600 : 400,
-                  borderBottom: pathname === link.href ? "2px solid var(--primary)" : "2px solid transparent",
-                  paddingBottom: 2,
-                  transition: "color 0.2s",
-                }}>
-                  {link.label}
-                </Link>
-              ))}
+              {navLinks.map((link) => {
+                const hasChildren = link.children && link.children.length > 0;
+                const isOpen = hasChildren && openDropdown === link.href;
+                return (
+                  <div
+                    key={link.href}
+                    style={{ position: "relative" }}
+                    onMouseEnter={() => hasChildren && setOpenDropdown(link.href)}
+                    onMouseLeave={() => hasChildren && setOpenDropdown(null)}
+                  >
+                    <Link href={link.href} style={{
+                      textDecoration: "none",
+                      fontSize: "0.85rem",
+                      color: pathname === link.href ? "var(--primary)" : "#1A1A1A",
+                      fontWeight: pathname === link.href ? 600 : 400,
+                      borderBottom: pathname === link.href ? "2px solid var(--primary)" : "2px solid transparent",
+                      paddingBottom: 2,
+                      transition: "color 0.2s",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                    }}>
+                      {link.label}
+                      {hasChildren && (
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>
+                          <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                      )}
+                    </Link>
+                    {isOpen && link.children && (
+                      <div style={{
+                        position: "absolute",
+                        top: "100%",
+                        left: 0,
+                        paddingTop: 10,
+                        minWidth: 160,
+                        zIndex: 50,
+                      }}>
+                        <div style={{
+                          background: "white",
+                          border: "1px solid var(--border-color)",
+                          borderRadius: 6,
+                          boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
+                          padding: "0.4rem 0",
+                        }}>
+                          {link.children.map((child) => (
+                            <Link key={child.href} href={child.href} style={{
+                              display: "block",
+                              padding: "0.55rem 1rem",
+                              textDecoration: "none",
+                              fontSize: "0.85rem",
+                              color: pathname === child.href ? "var(--primary)" : "#1A1A1A",
+                              fontWeight: pathname === child.href ? 600 : 400,
+                              whiteSpace: "nowrap",
+                            }}>
+                              {child.label}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </nav>
 
             {/* Right side */}
@@ -118,20 +187,57 @@ export default function Header() {
         {/* Mobile menu */}
         {menuOpen && (
           <div style={{ background: "white", borderTop: "1px solid var(--border-color)", padding: "1rem 1.5rem 1.5rem" }} className="md:hidden">
-            {navLinks.map((link) => (
-              <Link key={link.href} href={link.href}
-                onClick={() => setMenuOpen(false)}
-                style={{
-                  display: "block", padding: "0.6rem 0",
-                  textDecoration: "none",
-                  color: pathname === link.href ? "var(--primary)" : "#1A1A1A",
-                  fontWeight: pathname === link.href ? 600 : 400,
-                  borderBottom: "1px solid var(--border-color)",
-                  fontSize: "0.95rem",
-                }}>
-                {link.label}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const hasChildren = link.children && link.children.length > 0;
+              const isExpanded = hasChildren && mobileExpanded === link.href;
+              return (
+                <div key={link.href} style={{ borderBottom: "1px solid var(--border-color)" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <Link href={link.href}
+                      onClick={() => setMenuOpen(false)}
+                      style={{
+                        flex: 1,
+                        display: "block", padding: "0.6rem 0",
+                        textDecoration: "none",
+                        color: pathname === link.href ? "var(--primary)" : "#1A1A1A",
+                        fontWeight: pathname === link.href ? 600 : 400,
+                        fontSize: "0.95rem",
+                      }}>
+                      {link.label}
+                    </Link>
+                    {hasChildren && (
+                      <button
+                        onClick={() => setMobileExpanded(isExpanded ? null : link.href)}
+                        aria-label="Toggle submenu"
+                        style={{ background: "none", border: "none", cursor: "pointer", padding: "0.6rem 0.5rem", color: "#1A1A1A" }}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: isExpanded ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>
+                          <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                  {isExpanded && link.children && (
+                    <div style={{ paddingLeft: "1rem", paddingBottom: "0.4rem" }}>
+                      {link.children.map((child) => (
+                        <Link key={child.href} href={child.href}
+                          onClick={() => setMenuOpen(false)}
+                          style={{
+                            display: "block",
+                            padding: "0.5rem 0",
+                            textDecoration: "none",
+                            color: pathname === child.href ? "var(--primary)" : "#444",
+                            fontWeight: pathname === child.href ? 600 : 400,
+                            fontSize: "0.9rem",
+                          }}>
+                          {child.label}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </header>

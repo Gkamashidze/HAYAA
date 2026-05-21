@@ -12,8 +12,8 @@ export type CategoryNav = {
 
 export const categoryNav: CategoryNav[] = [
   { slug: "islamic-clothing", label: "Islamic Clothing", icon: "🧕" },
-  { slug: "childrens-clothing", label: "Kids", icon: "👧" },
-  { slug: "childrens-toys", label: "Kids Toys", icon: "🧸" },
+  { slug: "childrens-clothing", label: "Child", icon: "👧" },
+  { slug: "childrens-toys", label: "Kids Toys", icon: "🧸", inHeader: false },
   { slug: "home-electronics", label: "Home Electronics", icon: "📺" },
   { slug: "perfumery", label: "Perfumery", icon: "🌹" },
   { slug: "makeup", label: "Makeup", icon: "💄" },
