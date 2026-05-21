@@ -10,6 +10,7 @@ datasource db {
 model Category {
   id        Int       @id @default(autoincrement())
   name      String
+  nameFa    String?
   slug      String    @unique
   image     String?
   products  Product[]
@@ -17,18 +18,20 @@ model Category {
 }
 
 model Product {
-  id          Int      @id @default(autoincrement())
-  name        String
-  description String?
-  price       Float
-  currency    String   @default("USD")
-  images      String   @default("[]")
-  categoryId  Int
-  category    Category @relation(fields: [categoryId], references: [id])
-  inStock     Boolean  @default(true)
-  featured    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  name          String
+  nameFa        String?
+  description   String?
+  descriptionFa String?
+  price         Float
+  currency      String   @default("USD")
+  images        String   @default("[]")
+  categoryId    Int
+  category      Category @relation(fields: [categoryId], references: [id])
+  inStock       Boolean  @default(true)
+  featured      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model AdminUser {

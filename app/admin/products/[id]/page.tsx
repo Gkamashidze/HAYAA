@@ -28,7 +28,9 @@ export default async function EditProductPage({ params }: Params) {
           initialData={{
             id: product.id,
             name: product.name,
+            nameFa: product.nameFa ?? "",
             description: product.description ?? "",
+            descriptionFa: product.descriptionFa ?? "",
             price: String(product.price),
             currency: product.currency,
             categoryId: String(product.categoryId),

@@ -45,13 +45,24 @@ function asImageList(v: unknown): Validated<string[]> {
 
 export interface ProductData {
   readonly name: string;
+  readonly nameFa: string | null;
   readonly description: string | null;
+  readonly descriptionFa: string | null;
   readonly price: number;
   readonly currency: string;
   readonly images: string[];
   readonly categoryId: number;
   readonly inStock: boolean;
   readonly featured: boolean;
+}
+
+function asOptionalString(v: unknown, field: string, max: number): Validated<string | null> {
+  if (v === undefined || v === null) return { ok: true, data: null };
+  if (typeof v !== "string") return fail(`${field} must be a string`);
+  const trimmed = v.trim();
+  if (trimmed.length === 0) return { ok: true, data: null };
+  if (trimmed.length > max) return fail(`${field} exceeds ${max} characters`);
+  return { ok: true, data: trimmed };
 }
 
 export function validateProductCreate(body: unknown): Validated<ProductData> {
@@ -62,6 +73,9 @@ export function validateProductCreate(body: unknown): Validated<ProductData> {
 
   const name = asString(b.name, "name", 200);
   if (!name.ok) return name;
+
+  const nameFa = asOptionalString(b.nameFa, "nameFa", 200);
+  if (!nameFa.ok) return nameFa;
 
   const price = asPositiveNumber(b.price, "price");
   if (!price.ok) return price;
@@ -77,6 +91,9 @@ export function validateProductCreate(body: unknown): Validated<ProductData> {
       return fail("description must be a string up to 5000 characters");
     }
   }
+  const descriptionFa = asOptionalString(b.descriptionFa, "descriptionFa", 5000);
+  if (!descriptionFa.ok) return descriptionFa;
+
   if (b.currency !== undefined && typeof b.currency !== "string") {
     return fail("currency must be a string");
   }
@@ -85,7 +102,9 @@ export function validateProductCreate(body: unknown): Validated<ProductData> {
     ok: true,
     data: {
       name: name.data,
+      nameFa: nameFa.data,
       description: typeof b.description === "string" ? b.description : null,
+      descriptionFa: descriptionFa.data,
       price: price.data,
       currency: typeof b.currency === "string" ? b.currency.slice(0, 8) : "USD",
       images: images.data,
@@ -109,6 +128,11 @@ export function validateProductUpdate(
     const name = asString(b.name, "name", 200);
     if (!name.ok) return name;
     out.name = name.data;
+  }
+  if (b.nameFa !== undefined) {
+    const nameFa = asOptionalString(b.nameFa, "nameFa", 200);
+    if (!nameFa.ok) return nameFa;
+    out.nameFa = nameFa.data;
   }
   if (b.price !== undefined) {
     const price = asPositiveNumber(b.price, "price");
@@ -134,6 +158,11 @@ export function validateProductUpdate(
     }
     out.description = (b.description as string | null) ?? null;
   }
+  if (b.descriptionFa !== undefined) {
+    const descriptionFa = asOptionalString(b.descriptionFa, "descriptionFa", 5000);
+    if (!descriptionFa.ok) return descriptionFa;
+    out.descriptionFa = descriptionFa.data;
+  }
   if (b.currency !== undefined) {
     if (typeof b.currency !== "string") return fail("currency must be a string");
     out.currency = b.currency.slice(0, 8);
@@ -152,6 +181,7 @@ export function validateProductUpdate(
 
 export interface CategoryData {
   readonly name: string;
+  readonly nameFa: string | null;
   readonly slug: string;
   readonly image: string | null;
 }
@@ -164,6 +194,9 @@ export function validateCategoryCreate(body: unknown): Validated<CategoryData> {
 
   const name = asString(b.name, "name", 100);
   if (!name.ok) return name;
+
+  const nameFa = asOptionalString(b.nameFa, "nameFa", 100);
+  if (!nameFa.ok) return nameFa;
 
   const slug = asString(b.slug, "slug", 100);
   if (!slug.ok) return slug;
@@ -179,6 +212,7 @@ export function validateCategoryCreate(body: unknown): Validated<CategoryData> {
     ok: true,
     data: {
       name: name.data,
+      nameFa: nameFa.data,
       slug: slug.data,
       image: typeof b.image === "string" ? b.image : null,
     },

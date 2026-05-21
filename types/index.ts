@@ -1,6 +1,7 @@
 export interface Category {
   id: number;
   name: string;
+  nameFa: string | null;
   slug: string;
   image: string | null;
   createdAt: string;
@@ -9,7 +10,9 @@ export interface Category {
 export interface Product {
   id: number;
   name: string;
+  nameFa: string | null;
   description: string | null;
+  descriptionFa: string | null;
   price: number;
   currency: string;
   images: string[];

@@ -2,16 +2,25 @@
 
 import Link from "next/link";
 import { categoryNav } from "@/lib/categories";
+import { useLanguage } from "@/context/LanguageContext";
+import { dict } from "@/lib/i18n";
 
 const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "995000000000";
 const MESSENGER = process.env.NEXT_PUBLIC_MESSENGER_PAGE ?? "hayaastore";
 
-const footerCategoryLinks = categoryNav.map((c) => ({
-  href: `/category/${c.slug}`,
-  label: c.label,
-}));
-
 export default function Footer() {
+  const { lang, t } = useLanguage();
+
+  const categoryLinks = categoryNav.map((c) => ({
+    href: `/category/${c.slug}`,
+    label: dict[c.labelKey][lang],
+  }));
+
+  const shopLinks = [
+    { href: "/products", label: t("nav_all_products") },
+    { href: "/cart", label: t("cart_title") },
+  ];
+
   return (
     <footer style={{
       background: "#1A1A1A", color: "#ccc",
@@ -22,7 +31,7 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <div style={{ fontFamily: "Georgia, serif", fontSize: 22, fontWeight: 700, color: "white", letterSpacing: "0.08em", marginBottom: 8 }}>HAYAA</div>
-            <p style={{ fontSize: 13, lineHeight: 1.7, color: "#aaa" }}>Where Modesty Meets Luxury.<br/>Quality Islamic and modest fashion.</p>
+            <p style={{ fontSize: 13, lineHeight: 1.7, color: "#aaa", whiteSpace: "pre-line" }}>{t("footer_brand_sub")}</p>
             <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
               <a href={`https://wa.me/${WHATSAPP}`} target="_blank" rel="noopener noreferrer"
                 style={{ background: "#25D366", color: "white", padding: "6px 14px", borderRadius: 6, textDecoration: "none", fontSize: 12, fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 6 }}>
@@ -39,8 +48,8 @@ export default function Footer() {
 
           {/* Categories */}
           <div>
-            <h3 style={{ color: "white", fontSize: 14, fontWeight: 600, marginBottom: 12, letterSpacing: "0.05em", textTransform: "uppercase" }}>Categories</h3>
-            {footerCategoryLinks.map((l) => (
+            <h3 style={{ color: "white", fontSize: 14, fontWeight: 600, marginBottom: 12, letterSpacing: "0.05em", textTransform: "uppercase" }}>{t("footer_categories")}</h3>
+            {categoryLinks.map((l) => (
               <Link key={l.href} href={l.href} style={{ display: "block", color: "#aaa", textDecoration: "none", fontSize: 13, marginBottom: 6, transition: "color 0.2s" }}
                 onMouseEnter={(e) => (e.currentTarget.style.color = "white")}
                 onMouseLeave={(e) => (e.currentTarget.style.color = "#aaa")}>
@@ -51,11 +60,8 @@ export default function Footer() {
 
           {/* Shop */}
           <div>
-            <h3 style={{ color: "white", fontSize: 14, fontWeight: 600, marginBottom: 12, letterSpacing: "0.05em", textTransform: "uppercase" }}>Shop</h3>
-            {[
-              { href: "/products", label: "All Products" },
-              { href: "/cart", label: "Shopping Cart" },
-            ].map((l) => (
+            <h3 style={{ color: "white", fontSize: 14, fontWeight: 600, marginBottom: 12, letterSpacing: "0.05em", textTransform: "uppercase" }}>{t("footer_shop")}</h3>
+            {shopLinks.map((l) => (
               <Link key={l.href} href={l.href} style={{ display: "block", color: "#aaa", textDecoration: "none", fontSize: 13, marginBottom: 6 }}>
                 {l.label}
               </Link>
@@ -64,7 +70,7 @@ export default function Footer() {
         </div>
 
         <div style={{ borderTop: "1px solid #333", marginTop: "2rem", paddingTop: "1.5rem", textAlign: "center", fontSize: 12, color: "#777" }}>
-          © {new Date().getFullYear()} HAYAA. All rights reserved.
+          © {new Date().getFullYear()} HAYAA. {t("footer_rights")}
         </div>
       </div>
     </footer>

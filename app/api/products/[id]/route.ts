@@ -73,7 +73,9 @@ export async function PUT(req: Request, { params }: Params) {
       where: { id },
       data: {
         ...(v.name !== undefined && { name: v.name }),
+        ...(v.nameFa !== undefined && { nameFa: v.nameFa }),
         ...(v.description !== undefined && { description: v.description }),
+        ...(v.descriptionFa !== undefined && { descriptionFa: v.descriptionFa }),
         ...(v.price !== undefined && { price: v.price }),
         ...(v.currency !== undefined && { currency: v.currency }),
         ...(v.images !== undefined && { images: JSON.stringify(v.images) }),

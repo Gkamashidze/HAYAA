@@ -7,7 +7,7 @@ interface Category { id: number; name: string; slug: string; _count?: { products
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({ name: "", slug: "" });
+  const [form, setForm] = useState({ name: "", nameFa: "", slug: "" });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -24,15 +24,16 @@ export default function AdminCategoriesPage() {
     s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
   const handleCreate = async () => {
-    if (!form.name || !form.slug) { setError("All fields required"); return; }
+    if (!form.name || !form.slug) { setError("Name and slug required"); return; }
     setSaving(true); setError("");
+    const payload = { ...form, nameFa: form.nameFa.trim() || null };
     const res = await fetch("/api/categories", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify(payload),
     });
     setSaving(false);
     if (!res.ok) { const d = await res.json(); setError(d.error ?? "Error"); return; }
-    setForm({ name: "", slug: "" });
+    setForm({ name: "", nameFa: "", slug: "" });
     load();
   };
 
@@ -50,8 +51,12 @@ export default function AdminCategoriesPage() {
         <div style={{ background: "white", borderRadius: 12, border: "1px solid var(--border-color)", padding: "1.5rem" }}>
           <h2 style={{ fontSize: 15, fontWeight: 600, marginBottom: 16 }}>Add Category</h2>
           <div style={{ marginBottom: 12 }}>
-            <label style={{ fontSize: 12, fontWeight: 500, display: "block", marginBottom: 4 }}>Category Name *</label>
+            <label style={{ fontSize: 12, fontWeight: 500, display: "block", marginBottom: 4 }}>Category Name (EN) *</label>
             <input style={inputStyle} value={form.name} onChange={(e) => { setForm((p) => ({ ...p, name: e.target.value, slug: slugify(e.target.value) })); }} placeholder="Islamic Clothing" />
+          </div>
+          <div style={{ marginBottom: 12 }}>
+            <label style={{ fontSize: 12, fontWeight: 500, display: "block", marginBottom: 4 }}>Category Name (FA)</label>
+            <input style={{ ...inputStyle, direction: "rtl", textAlign: "right" }} value={form.nameFa} onChange={(e) => setForm((p) => ({ ...p, nameFa: e.target.value }))} placeholder="پوشاک اسلامی" />
           </div>
           <div style={{ marginBottom: 16 }}>
             <label style={{ fontSize: 12, fontWeight: 500, display: "block", marginBottom: 4 }}>URL Slug *</label>

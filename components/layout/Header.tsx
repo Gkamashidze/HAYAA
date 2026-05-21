@@ -4,47 +4,51 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCart } from "@/context/CartContext";
+import { useLanguage } from "@/context/LanguageContext";
 import CartDrawer from "@/components/cart/CartDrawer";
+import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 import { categoryNav } from "@/lib/categories";
+import { dict, type DictKey } from "@/lib/i18n";
 
 type NavLink = {
   href: string;
-  label: string;
+  labelKey: DictKey;
   slug?: string;
-  children?: { href: string; label: string }[];
+  children?: { href: string; labelKey: DictKey }[];
 };
-
-const childDropdown: { href: string; label: string }[] = categoryNav
-  .filter((c) => c.slug === "childrens-toys")
-  .map((c) => ({ href: `/category/${c.slug}`, label: c.label }));
-
-const navLinks: NavLink[] = [
-  { href: "/products", label: "All Products" },
-  ...categoryNav
-    .filter((c) => c.inHeader !== false)
-    .map((c) => ({
-      href: `/category/${c.slug}`,
-      label: c.label,
-      slug: c.slug,
-      children: c.slug === "childrens-clothing" ? childDropdown : undefined,
-    })),
-];
 
 export default function Header() {
   const pathname = usePathname();
   const { totalItems } = useCart();
+  const { lang, t } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
+
+  const childDropdown = categoryNav
+    .filter((c) => c.slug === "childrens-toys")
+    .map((c) => ({ href: `/category/${c.slug}`, labelKey: c.labelKey }));
+
+  const navLinks: NavLink[] = [
+    { href: "/products", labelKey: "nav_all_products" },
+    ...categoryNav
+      .filter((c) => c.inHeader !== false)
+      .map((c) => ({
+        href: `/category/${c.slug}`,
+        labelKey: c.labelKey,
+        slug: c.slug,
+        children: c.slug === "childrens-clothing" ? childDropdown : undefined,
+      })),
+  ];
 
   return (
     <>
       <header style={{ background: "white", borderBottom: "1px solid var(--border-color)" }} className="sticky top-0 z-40">
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 1.5rem" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 70 }}>
-            {/* Logo — also serves as Home link */}
-            <Link href="/" aria-label="Home" style={{ textDecoration: "none" }}>
+            {/* Logo */}
+            <Link href="/" style={{ textDecoration: "none" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{
                   width: 44, height: 44, borderRadius: "50%",
@@ -56,7 +60,7 @@ export default function Header() {
                 </div>
                 <div>
                   <div style={{ fontFamily: "Georgia, serif", fontWeight: 700, fontSize: 18, color: "#1A1A1A", lineHeight: 1.1, letterSpacing: "0.08em" }}>HAYAA</div>
-                  <div style={{ fontSize: 9, color: "var(--muted)", letterSpacing: "0.12em", textTransform: "uppercase" }}>Where Modesty Meets Luxury</div>
+                  <div style={{ fontSize: 9, color: "var(--muted)", letterSpacing: "0.12em", textTransform: "uppercase" }}>{t("brand_tagline")}</div>
                 </div>
               </div>
             </Link>
@@ -85,7 +89,7 @@ export default function Header() {
                       alignItems: "center",
                       gap: 4,
                     }}>
-                      {link.label}
+                      {dict[link.labelKey][lang]}
                       {hasChildren && (
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>
                           <polyline points="6 9 12 15 18 9"/>
@@ -96,7 +100,7 @@ export default function Header() {
                       <div style={{
                         position: "absolute",
                         top: "100%",
-                        left: 0,
+                        insetInlineStart: 0,
                         paddingTop: 10,
                         minWidth: 160,
                         zIndex: 50,
@@ -118,7 +122,7 @@ export default function Header() {
                               fontWeight: pathname === child.href ? 600 : 400,
                               whiteSpace: "nowrap",
                             }}>
-                              {child.label}
+                              {dict[child.labelKey][lang]}
                             </Link>
                           ))}
                         </div>
@@ -131,6 +135,8 @@ export default function Header() {
 
             {/* Right side */}
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+              <LanguageSwitcher />
+
               <button
                 onClick={() => setCartOpen(true)}
                 style={{
@@ -147,7 +153,7 @@ export default function Header() {
                 </svg>
                 {totalItems > 0 && (
                   <span style={{
-                    position: "absolute", top: 2, right: 2,
+                    position: "absolute", top: 2, insetInlineEnd: 2,
                     background: "var(--primary)", color: "white",
                     borderRadius: "50%", width: 18, height: 18,
                     fontSize: 10, fontWeight: 700,
@@ -202,12 +208,12 @@ export default function Header() {
                         fontWeight: pathname === link.href ? 600 : 400,
                         fontSize: "0.95rem",
                       }}>
-                      {link.label}
+                      {dict[link.labelKey][lang]}
                     </Link>
                     {hasChildren && (
                       <button
                         onClick={() => setMobileExpanded(isExpanded ? null : link.href)}
-                        aria-label="Toggle submenu"
+                        aria-label={t("nav_toggle_submenu")}
                         style={{ background: "none", border: "none", cursor: "pointer", padding: "0.6rem 0.5rem", color: "#1A1A1A" }}
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: isExpanded ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>
@@ -217,7 +223,7 @@ export default function Header() {
                     )}
                   </div>
                   {isExpanded && link.children && (
-                    <div style={{ paddingLeft: "1rem", paddingBottom: "0.4rem" }}>
+                    <div style={{ paddingInlineStart: "1rem", paddingBottom: "0.4rem" }}>
                       {link.children.map((child) => (
                         <Link key={child.href} href={child.href}
                           onClick={() => setMenuOpen(false)}
@@ -229,7 +235,7 @@ export default function Header() {
                             fontWeight: pathname === child.href ? 600 : 400,
                             fontSize: "0.9rem",
                           }}>
-                          {child.label}
+                          {dict[child.labelKey][lang]}
                         </Link>
                       ))}
                     </div>

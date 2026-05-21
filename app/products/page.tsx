@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react";
 import ProductCard from "@/components/products/ProductCard";
-import type { Product } from "@/types";
-
-interface Category { id: number; name: string; slug: string; }
+import { useLanguage } from "@/context/LanguageContext";
+import { localized } from "@/lib/i18n";
+import type { Product, Category } from "@/types";
 
 export default function ProductsPage() {
+  const { t, lang } = useLanguage();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -32,17 +33,19 @@ export default function ProductsPage() {
       .finally(() => setLoading(false));
   }, [selectedCategory, search]);
 
+  const itemsLabel = products.length === 1 ? t("items_count_one") : t("items_count_many");
+
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto", padding: "2.5rem 1.5rem" }}>
-      <h1 style={{ fontFamily: "Georgia, serif", fontSize: "2rem", fontWeight: 600, marginBottom: "0.5rem" }}>All Products</h1>
-      <p style={{ color: "var(--muted)", fontSize: 14, marginBottom: "2rem" }}>{products.length} items</p>
+      <h1 style={{ fontFamily: "Georgia, serif", fontSize: "2rem", fontWeight: 600, marginBottom: "0.5rem" }}>{t("all_products_title")}</h1>
+      <p style={{ color: "var(--muted)", fontSize: 14, marginBottom: "2rem" }}>{products.length} {itemsLabel}</p>
 
       {/* Filters */}
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: "2rem", alignItems: "center" }}>
         {/* Search */}
         <input
           type="text"
-          placeholder="Search products..."
+          placeholder={t("search_placeholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           style={{
@@ -63,7 +66,7 @@ export default function ProductsPage() {
               cursor: "pointer", fontSize: 13, fontWeight: 500,
               transition: "all 0.2s",
             }}>
-            All
+            {t("filter_all")}
           </button>
           {categories.map((cat) => (
             <button
@@ -77,7 +80,7 @@ export default function ProductsPage() {
                 cursor: "pointer", fontSize: 13, fontWeight: 500,
                 transition: "all 0.2s",
               }}>
-              {cat.name}
+              {localized(cat, lang)}
             </button>
           ))}
         </div>
@@ -93,8 +96,8 @@ export default function ProductsPage() {
       ) : products.length === 0 ? (
         <div style={{ textAlign: "center", padding: "5rem 0", color: "var(--muted)" }}>
           <div style={{ fontSize: 48, marginBottom: 16 }}>🛍️</div>
-          <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8, color: "#1A1A1A" }}>No products found</h3>
-          <p style={{ fontSize: 14 }}>Try a different search or category.</p>
+          <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8, color: "#1A1A1A" }}>{t("no_products_found_title")}</h3>
+          <p style={{ fontSize: 14 }}>{t("no_products_found_sub")}</p>
         </div>
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "1.25rem" }}>

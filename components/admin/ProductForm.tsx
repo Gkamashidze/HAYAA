@@ -6,7 +6,9 @@ import Image from "next/image";
 
 interface Category { id: number; name: string; }
 interface ProductFormData {
-  name: string; description: string; price: string; currency: string;
+  name: string; nameFa: string;
+  description: string; descriptionFa: string;
+  price: string; currency: string;
   categoryId: string; inStock: boolean; featured: boolean; images: string[];
 }
 
@@ -23,7 +25,9 @@ export default function ProductForm({ initialData, mode }: Props) {
   const [error, setError] = useState("");
   const [form, setForm] = useState<ProductFormData>({
     name: initialData?.name ?? "",
+    nameFa: initialData?.nameFa ?? "",
     description: initialData?.description ?? "",
+    descriptionFa: initialData?.descriptionFa ?? "",
     price: initialData?.price ?? "",
     currency: initialData?.currency ?? "USD",
     categoryId: initialData?.categoryId ?? "",
@@ -60,7 +64,13 @@ export default function ProductForm({ initialData, mode }: Props) {
     setSaving(true);
     setError("");
     try {
-      const payload = { ...form, price: Number(form.price), categoryId: Number(form.categoryId) };
+      const payload = {
+        ...form,
+        price: Number(form.price),
+        categoryId: Number(form.categoryId),
+        nameFa: form.nameFa.trim() || null,
+        descriptionFa: form.descriptionFa.trim() || null,
+      };
       const url = mode === "edit" ? `/api/products/${initialData?.id}` : "/api/products";
       const method = mode === "edit" ? "PUT" : "POST";
       const res = await fetch(url, {
@@ -90,16 +100,28 @@ export default function ProductForm({ initialData, mode }: Props) {
   return (
     <form onSubmit={handleSubmit}>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
-        {/* Name */}
-        <div style={{ gridColumn: "1 / -1" }}>
-          <label style={labelStyle}>Product Name *</label>
+        {/* Name (EN) */}
+        <div>
+          <label style={labelStyle}>Product Name (EN) *</label>
           <input style={inputStyle} value={form.name} onChange={(e) => set("name", e.target.value)} required placeholder="e.g. Black Abaya" />
         </div>
 
-        {/* Description */}
-        <div style={{ gridColumn: "1 / -1" }}>
-          <label style={labelStyle}>Description</label>
+        {/* Name (FA) */}
+        <div>
+          <label style={labelStyle}>Product Name (FA)</label>
+          <input style={{ ...inputStyle, direction: "rtl", textAlign: "right" }} value={form.nameFa} onChange={(e) => set("nameFa", e.target.value)} placeholder="مثلاً عبای مشکی" />
+        </div>
+
+        {/* Description (EN) */}
+        <div>
+          <label style={labelStyle}>Description (EN)</label>
           <textarea style={{ ...inputStyle, minHeight: 100, resize: "vertical" }} value={form.description} onChange={(e) => set("description", e.target.value)} placeholder="Product description..." />
+        </div>
+
+        {/* Description (FA) */}
+        <div>
+          <label style={labelStyle}>Description (FA)</label>
+          <textarea style={{ ...inputStyle, minHeight: 100, resize: "vertical", direction: "rtl", textAlign: "right" }} value={form.descriptionFa} onChange={(e) => set("descriptionFa", e.target.value)} placeholder="توضیحات محصول..." />
         </div>
 
         {/* Price */}

@@ -3,13 +3,18 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/context/CartContext";
+import { useLanguage } from "@/context/LanguageContext";
+import { localized } from "@/lib/i18n";
 import type { Product } from "@/types";
 
 interface Props { product: Product; }
 
 export default function ProductCard({ product }: Props) {
   const { addItem } = useCart();
+  const { lang, t } = useLanguage();
   const image = product.images[0] ?? null;
+  const displayName = localized(product, lang);
+  const categoryName = localized(product.category, lang);
 
   return (
     <div style={{
@@ -32,7 +37,7 @@ export default function ProductCard({ product }: Props) {
         <div style={{ aspectRatio: "3/4", background: "#f5f0eb", overflow: "hidden", position: "relative" }}>
           {image ? (
             <Image
-              src={image} alt={product.name}
+              src={image} alt={displayName}
               fill style={{ objectFit: "contain" }}
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             />
@@ -47,19 +52,19 @@ export default function ProductCard({ product }: Props) {
           )}
           {!product.inStock && (
             <div style={{
-              position: "absolute", top: 8, left: 8,
+              position: "absolute", top: 8, insetInlineStart: 8,
               background: "#cc4444", color: "white",
               fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 4,
               letterSpacing: "0.05em", textTransform: "uppercase",
-            }}>Out of Stock</div>
+            }}>{t("out_of_stock")}</div>
           )}
           {product.featured && product.inStock && (
             <div style={{
-              position: "absolute", top: 8, left: 8,
+              position: "absolute", top: 8, insetInlineStart: 8,
               background: "var(--gold)", color: "white",
               fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 4,
               letterSpacing: "0.05em",
-            }}>Featured</div>
+            }}>{t("featured")}</div>
           )}
         </div>
       </Link>
@@ -67,11 +72,11 @@ export default function ProductCard({ product }: Props) {
       {/* Info */}
       <div style={{ padding: "0.875rem 1rem 1rem", flex: 1, display: "flex", flexDirection: "column" }}>
         <p style={{ fontSize: 10, color: "var(--primary)", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>
-          {product.category.name}
+          {categoryName}
         </p>
         <Link href={`/products/${product.id}`} style={{ textDecoration: "none" }}>
           <h3 style={{ fontSize: 14, fontWeight: 600, color: "#1A1A1A", marginBottom: 6, lineHeight: 1.4 }}>
-            {product.name}
+            {displayName}
           </h3>
         </Link>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "auto" }}>
@@ -81,7 +86,7 @@ export default function ProductCard({ product }: Props) {
           <button
             onClick={() => addItem({
               id: product.id,
-              name: product.name,
+              name: displayName,
               price: product.price,
               currency: product.currency,
               image,
@@ -101,7 +106,7 @@ export default function ProductCard({ product }: Props) {
             onMouseEnter={(e) => product.inStock && ((e.currentTarget as HTMLButtonElement).style.background = "var(--primary-dark)")}
             onMouseLeave={(e) => product.inStock && ((e.currentTarget as HTMLButtonElement).style.background = "var(--primary)")}
           >
-            Add to Cart
+            {t("add_to_cart")}
           </button>
         </div>
       </div>

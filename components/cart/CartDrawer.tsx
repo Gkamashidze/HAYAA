@@ -3,11 +3,13 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/context/CartContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Props { open: boolean; onClose: () => void; }
 
 export default function CartDrawer({ open, onClose }: Props) {
   const { items, removeItem, updateQuantity, totalItems, totalPrice } = useCart();
+  const { t, dir } = useLanguage();
 
   return (
     <>
@@ -22,16 +24,17 @@ export default function CartDrawer({ open, onClose }: Props) {
         />
       )}
 
-      {/* Drawer */}
+      {/* Drawer — anchored to the inline-end edge (right for LTR, left for RTL) */}
       <div style={{
-        position: "fixed", top: 0, right: 0, bottom: 0,
+        position: "fixed", top: 0, bottom: 0,
+        insetInlineEnd: 0,
         width: "min(100vw, 400px)",
         background: "white",
         zIndex: 51,
-        transform: open ? "translateX(0)" : "translateX(100%)",
+        transform: open ? "translateX(0)" : (dir === "rtl" ? "translateX(-100%)" : "translateX(100%)"),
         transition: "transform 0.3s ease",
         display: "flex", flexDirection: "column",
-        boxShadow: "-4px 0 24px rgba(0,0,0,0.12)",
+        boxShadow: dir === "rtl" ? "4px 0 24px rgba(0,0,0,0.12)" : "-4px 0 24px rgba(0,0,0,0.12)",
       }}>
         {/* Header */}
         <div style={{
@@ -40,7 +43,7 @@ export default function CartDrawer({ open, onClose }: Props) {
           display: "flex", alignItems: "center", justifyContent: "space-between",
         }}>
           <h2 style={{ fontFamily: "Georgia, serif", fontSize: 18, fontWeight: 600 }}>
-            Cart ({totalItems})
+            {t("cart_short")} ({totalItems})
           </h2>
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -58,12 +61,12 @@ export default function CartDrawer({ open, onClose }: Props) {
                 <line x1="3" y1="6" x2="21" y2="6"/>
                 <path d="M16 10a4 4 0 01-8 0"/>
               </svg>
-              <p style={{ fontSize: 14 }}>Your cart is empty</p>
+              <p style={{ fontSize: 14 }}>{t("cart_empty")}</p>
               <Link href="/products" onClick={onClose} style={{
                 display: "inline-block", marginTop: 16, padding: "0.5rem 1.5rem",
                 background: "var(--primary)", color: "white", borderRadius: 6,
                 textDecoration: "none", fontSize: 13, fontWeight: 500,
-              }}>Browse Products</Link>
+              }}>{t("browse_products")}</Link>
             </div>
           ) : (
             items.map((item) => (
@@ -105,8 +108,8 @@ export default function CartDrawer({ open, onClose }: Props) {
                     </button>
                     <button
                       onClick={() => removeItem(item.id)}
-                      style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#cc4444", fontSize: 11 }}>
-                      Remove
+                      style={{ marginInlineStart: "auto", background: "none", border: "none", cursor: "pointer", color: "#cc4444", fontSize: 11 }}>
+                      {t("remove")}
                     </button>
                   </div>
                 </div>
@@ -119,7 +122,7 @@ export default function CartDrawer({ open, onClose }: Props) {
         {items.length > 0 && (
           <div style={{ padding: "1.25rem 1.5rem", borderTop: "1px solid var(--border-color)", background: "white" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
-              <span style={{ fontWeight: 600 }}>Total</span>
+              <span style={{ fontWeight: 600 }}>{t("total")}</span>
               <span style={{ fontWeight: 700, color: "var(--primary)", fontSize: 16 }}>
                 {totalPrice.toFixed(2)} {items[0]?.currency ?? "USD"}
               </span>
@@ -129,7 +132,7 @@ export default function CartDrawer({ open, onClose }: Props) {
               background: "var(--primary)", color: "white", borderRadius: 8,
               textDecoration: "none", fontWeight: 600, fontSize: 14,
             }}>
-              View Cart & Order
+              {t("view_cart_order")}
             </Link>
           </div>
         )}
