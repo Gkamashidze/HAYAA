@@ -29,11 +29,11 @@ export default function ProductCard({ product }: Props) {
     >
       {/* Image */}
       <Link href={`/products/${product.id}`} style={{ textDecoration: "none" }}>
-        <div style={{ aspectRatio: "4/3", background: "#f5f0eb", overflow: "hidden", position: "relative" }}>
+        <div style={{ aspectRatio: "3/4", background: "#f5f0eb", overflow: "hidden", position: "relative" }}>
           {image ? (
             <Image
               src={image} alt={product.name}
-              fill style={{ objectFit: "cover" }}
+              fill style={{ objectFit: "contain" }}
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             />
           ) : (

@@ -24,11 +24,11 @@ export default async function ProductPage({ params }: Params) {
         className="product-detail-grid">
         {/* Images */}
         <div>
-          <div style={{ borderRadius: 16, overflow: "hidden", border: "1px solid var(--border-color)", background: "#f5f0eb", aspectRatio: "1", position: "relative" }}>
+          <div style={{ borderRadius: 16, overflow: "hidden", border: "1px solid var(--border-color)", background: "#f5f0eb", aspectRatio: "3/4", position: "relative" }}>
             {product.images[0] ? (
               <Image
                 src={product.images[0]} alt={product.name}
-                fill style={{ objectFit: "cover" }}
+                fill style={{ objectFit: "contain" }}
                 priority sizes="(max-width: 768px) 100vw, 50vw"
               />
             ) : (
@@ -45,8 +45,8 @@ export default async function ProductPage({ params }: Params) {
           {product.images.length > 1 && (
             <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
               {product.images.slice(1).map((img, i) => (
-                <div key={i} style={{ width: 72, height: 72, borderRadius: 8, overflow: "hidden", border: "1px solid var(--border-color)", position: "relative" }}>
-                  <Image src={img} alt={`${product.name} ${i + 2}`} fill style={{ objectFit: "cover" }} sizes="72px" />
+                <div key={i} style={{ width: 72, height: 72, borderRadius: 8, overflow: "hidden", border: "1px solid var(--border-color)", background: "#f5f0eb", position: "relative" }}>
+                  <Image src={img} alt={`${product.name} ${i + 2}`} fill style={{ objectFit: "contain" }} sizes="72px" />
                 </div>
               ))}
             </div>
