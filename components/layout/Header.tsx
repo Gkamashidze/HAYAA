@@ -10,7 +10,9 @@ const navLinks = [
   { href: "/", label: "Home" },
   { href: "/products", label: "All Products" },
   { href: "/category/islamic-clothing", label: "Islamic Clothing" },
-  { href: "/category/childrens-clothing", label: "Children" },
+  { href: "/category/childrens-clothing", label: "Kids" },
+  { href: "/category/childrens-toys", label: "Kids Toys" },
+  { href: "/category/home-electronics", label: "Home Electronics" },
   { href: "/category/perfumery", label: "Perfumery" },
   { href: "/category/makeup", label: "Makeup" },
 ];
