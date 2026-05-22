@@ -42,7 +42,7 @@ export default async function HomePage() {
           <div style={{ width: 90, height: 90, borderRadius: "50%", background: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.5rem", boxShadow: "0 8px 32px rgba(181,83,42,0.5)" }}>
             <span style={{ fontFamily: "Georgia, serif", fontWeight: 700, fontSize: 30, color: "white", letterSpacing: "0.05em" }}>H</span>
           </div>
-          <h1 style={{ fontFamily: "Georgia, serif", fontSize: "clamp(2.5rem, 6vw, 4rem)", fontWeight: 700, letterSpacing: "0.1em", marginBottom: "0.75rem" }}>HAYAA</h1>
+          <h1 style={{ fontFamily: "Georgia, serif", fontSize: "clamp(2.5rem, 6vw, 4rem)", fontWeight: 700, letterSpacing: "0.1em", marginBottom: "0.75rem" }}>{lang === "fa" ? "حییأ" : "HAYAA"}</h1>
           <p style={{ fontSize: "clamp(0.85rem, 2vw, 1rem)", letterSpacing: "0.3em", textTransform: "uppercase", color: "var(--gold)", marginBottom: "1.75rem" }}>{t("brand_tagline", lang)}</p>
           <p style={{ fontSize: "clamp(1rem, 2.5vw, 1.1rem)", color: "rgba(255,255,255,0.8)", lineHeight: 1.7, marginBottom: "2.5rem", maxWidth: 500, margin: "0 auto 2.5rem" }}>
             {t("home_hero_subtitle", lang)}

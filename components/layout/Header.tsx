@@ -59,14 +59,14 @@ export default function Header() {
                   <span style={{ color: "white", fontFamily: "Georgia, serif", fontWeight: 700, fontSize: 13, letterSpacing: "0.05em" }}>H</span>
                 </div>
                 <div>
-                  <div style={{ fontFamily: "Georgia, serif", fontWeight: 700, fontSize: 18, color: "#1A1A1A", lineHeight: 1.1, letterSpacing: "0.08em" }}>HAYAA</div>
+                  <div style={{ fontFamily: "Georgia, serif", fontWeight: 700, fontSize: 18, color: "#1A1A1A", lineHeight: 1.1, letterSpacing: "0.08em" }}>{lang === "fa" ? "حییأ" : "HAYAA"}</div>
                   <div style={{ fontSize: 9, color: "var(--muted)", letterSpacing: "0.12em", textTransform: "uppercase" }}>{t("brand_tagline")}</div>
                 </div>
               </div>
             </Link>
 
             {/* Desktop Nav */}
-            <nav style={{ display: "flex", gap: "1.5rem", alignItems: "center" }} className="hidden md:flex">
+            <nav style={{ gap: "1.5rem", alignItems: "center" }} className="hidden md:flex">
               {navLinks.map((link) => {
                 const hasChildren = link.children && link.children.length > 0;
                 const isOpen = hasChildren && openDropdown === link.href;
