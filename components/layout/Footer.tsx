@@ -1,19 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { categoryNav } from "@/lib/categories";
+import { type NavCategory } from "@/lib/categories";
 import { useLanguage } from "@/context/LanguageContext";
-import { dict } from "@/lib/i18n";
+import { localized } from "@/lib/i18n";
 
 const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "995000000000";
 const MESSENGER = process.env.NEXT_PUBLIC_MESSENGER_PAGE ?? "hayaastore";
 
-export default function Footer() {
+export default function Footer({ categories }: { categories: NavCategory[] }) {
   const { lang, t } = useLanguage();
 
-  const categoryLinks = categoryNav.map((c) => ({
+  const categoryLinks = categories.map((c) => ({
     href: `/category/${c.slug}`,
-    label: dict[c.labelKey][lang],
+    label: localized(c, lang),
   }));
 
   const shopLinks = [

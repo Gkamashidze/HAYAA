@@ -7,17 +7,17 @@ import { useCart } from "@/context/CartContext";
 import { useLanguage } from "@/context/LanguageContext";
 import CartDrawer from "@/components/cart/CartDrawer";
 import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
-import { categoryNav } from "@/lib/categories";
-import { dict, type DictKey } from "@/lib/i18n";
+import { buildHeaderNav, type NavCategory } from "@/lib/categories";
+import { localized } from "@/lib/i18n";
 
 type NavLink = {
   href: string;
-  labelKey: DictKey;
+  label: string;
   slug?: string;
-  children?: { href: string; labelKey: DictKey }[];
+  children?: { href: string; label: string }[];
 };
 
-export default function Header() {
+export default function Header({ categories }: { categories: NavCategory[] }) {
   const pathname = usePathname();
   const { totalItems } = useCart();
   const { lang, t } = useLanguage();
@@ -26,20 +26,16 @@ export default function Header() {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
 
-  const childDropdown = categoryNav
-    .filter((c) => c.slug === "childrens-toys")
-    .map((c) => ({ href: `/category/${c.slug}`, labelKey: c.labelKey }));
-
   const navLinks: NavLink[] = [
-    { href: "/products", labelKey: "nav_all_products" },
-    ...categoryNav
-      .filter((c) => c.inHeader !== false)
-      .map((c) => ({
-        href: `/category/${c.slug}`,
-        labelKey: c.labelKey,
-        slug: c.slug,
-        children: c.slug === "childrens-clothing" ? childDropdown : undefined,
-      })),
+    { href: "/products", label: t("nav_all_products") },
+    ...buildHeaderNav(categories).map((node) => ({
+      href: `/category/${node.category.slug}`,
+      label: localized(node.category, lang),
+      slug: node.category.slug,
+      children: node.children.length
+        ? node.children.map((ch) => ({ href: `/category/${ch.slug}`, label: localized(ch, lang) }))
+        : undefined,
+    })),
   ];
 
   return (
@@ -89,7 +85,7 @@ export default function Header() {
                       alignItems: "center",
                       gap: 4,
                     }}>
-                      {dict[link.labelKey][lang]}
+                      {link.label}
                       {hasChildren && (
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>
                           <polyline points="6 9 12 15 18 9"/>
@@ -122,7 +118,7 @@ export default function Header() {
                               fontWeight: pathname === child.href ? 600 : 400,
                               whiteSpace: "nowrap",
                             }}>
-                              {dict[child.labelKey][lang]}
+                              {child.label}
                             </Link>
                           ))}
                         </div>
@@ -208,7 +204,7 @@ export default function Header() {
                         fontWeight: pathname === link.href ? 600 : 400,
                         fontSize: "0.95rem",
                       }}>
-                      {dict[link.labelKey][lang]}
+                      {link.label}
                     </Link>
                     {hasChildren && (
                       <button
@@ -235,7 +231,7 @@ export default function Header() {
                             fontWeight: pathname === child.href ? 600 : 400,
                             fontSize: "0.9rem",
                           }}>
-                          {dict[child.labelKey][lang]}
+                          {child.label}
                         </Link>
                       ))}
                     </div>

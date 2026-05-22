@@ -6,6 +6,8 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { getServerLang } from "@/lib/i18n.server";
 import { dirFor } from "@/lib/i18n";
+import { prisma } from "@/lib/prisma";
+import type { NavCategory } from "@/lib/categories";
 
 export const metadata: Metadata = {
   title: "HAYAA — Where Modesty Meets Luxury",
@@ -13,8 +15,21 @@ export const metadata: Metadata = {
   icons: { icon: "/favicon.ico" },
 };
 
+// Category nav is read from the DB per request so admin changes (add, delete,
+// rename, reorder) reflect on the site immediately.
+async function getNavCategories(): Promise<NavCategory[]> {
+  try {
+    return await prisma.category.findMany({
+      orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
+      select: { id: true, name: true, nameFa: true, slug: true },
+    });
+  } catch {
+    return [];
+  }
+}
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const lang = await getServerLang();
+  const [lang, categories] = await Promise.all([getServerLang(), getNavCategories()]);
   const dir = dirFor(lang);
 
   return (
@@ -22,9 +37,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
         <LanguageProvider initialLang={lang}>
           <CartProvider>
-            <Header />
+            <Header categories={categories} />
             <main style={{ flex: 1 }}>{children}</main>
-            <Footer />
+            <Footer categories={categories} />
           </CartProvider>
         </LanguageProvider>
       </body>
