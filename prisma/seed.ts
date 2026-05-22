@@ -17,13 +17,13 @@ const prisma = new PrismaClient({ adapter });
 
 async function main() {
   const categories = [
-    { name: "Islamic Clothing", slug: "islamic-clothing" },
-    { name: "Kids Clothing", slug: "childrens-clothing" },
-    { name: "Kids Toys", slug: "childrens-toys" },
-    { name: "Home Electronics", slug: "home-electronics" },
-    { name: "Perfumery", slug: "perfumery" },
-    { name: "Makeup", slug: "makeup" },
-    { name: "Other", slug: "other" },
+    { name: "Islamic Clothing", nameFa: "پوشاک اسلامی", slug: "islamic-clothing" },
+    { name: "Kids Clothing", nameFa: "پوشاک کودک", slug: "childrens-clothing" },
+    { name: "Kids Toys", nameFa: "اسباب‌بازی کودکان", slug: "childrens-toys" },
+    { name: "Home Electronics", nameFa: "لوازم الکترونیکی خانه", slug: "home-electronics" },
+    { name: "Perfumery", nameFa: "عطریات", slug: "perfumery" },
+    { name: "Makeup", nameFa: "آرایش", slug: "makeup" },
+    { name: "Other", nameFa: "سایر", slug: "other" },
   ];
 
   // Bootstrap default categories ONLY on an empty database. After the first
