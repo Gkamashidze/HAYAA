@@ -218,3 +218,40 @@ export function validateCategoryCreate(body: unknown): Validated<CategoryData> {
     },
   };
 }
+
+export function validateCategoryUpdate(
+  body: unknown
+): Validated<Partial<CategoryData>> {
+  if (typeof body !== "object" || body === null) {
+    return fail("Request body must be a JSON object");
+  }
+  const b = body as Record<string, unknown>;
+  const out: { -readonly [K in keyof CategoryData]?: CategoryData[K] } = {};
+
+  if (b.name !== undefined) {
+    const name = asString(b.name, "name", 100);
+    if (!name.ok) return name;
+    out.name = name.data;
+  }
+  if (b.nameFa !== undefined) {
+    const nameFa = asOptionalString(b.nameFa, "nameFa", 100);
+    if (!nameFa.ok) return nameFa;
+    out.nameFa = nameFa.data;
+  }
+  if (b.slug !== undefined) {
+    const slug = asString(b.slug, "slug", 100);
+    if (!slug.ok) return slug;
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug.data)) {
+      return fail("slug must be lowercase letters, numbers and hyphens");
+    }
+    out.slug = slug.data;
+  }
+  if (b.image !== undefined) {
+    if (b.image !== null && typeof b.image !== "string") {
+      return fail("image must be a string");
+    }
+    out.image = (b.image as string | null) ?? null;
+  }
+
+  return { ok: true, data: out };
+}
