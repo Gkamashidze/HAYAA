@@ -26,12 +26,17 @@ async function main() {
     { name: "Other", slug: "other" },
   ];
 
-  for (const cat of categories) {
-    await prisma.category.upsert({
-      where: { slug: cat.slug },
-      update: { name: cat.name },
-      create: cat,
-    });
+  // Bootstrap default categories ONLY on an empty database. After the first
+  // deploy the admin panel is the single source of truth, so categories the
+  // owner deletes (or renames) are not recreated on subsequent deploys.
+  const existingCategories = await prisma.category.count();
+  if (existingCategories === 0) {
+    await prisma.category.createMany({ data: categories });
+    console.log(`Bootstrapped ${categories.length} default categories.`);
+  } else {
+    console.log(
+      `Categories already exist (${existingCategories}); skipping category seed.`
+    );
   }
 
   // Admin credentials come from env — never hardcode a password in the repo.
@@ -51,7 +56,7 @@ async function main() {
     create: { username, passwordHash },
   });
 
-  console.log(`✅ Seeded: ${categories.length} categories + admin user (${username})`);
+  console.log(`✅ Seed complete: admin user (${username}) ready`);
 }
 
 main()
