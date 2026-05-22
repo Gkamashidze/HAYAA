@@ -19,20 +19,41 @@ model Category {
 }
 
 model Product {
-  id            Int      @id @default(autoincrement())
-  name          String
-  nameFa        String?
-  description   String?
-  descriptionFa String?
-  price         Float
-  currency      String   @default("USD")
-  images        String   @default("[]")
-  categoryId    Int
-  category      Category @relation(fields: [categoryId], references: [id])
-  inStock       Boolean  @default(true)
-  featured      Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                Int      @id @default(autoincrement())
+  name              String
+  nameFa            String?
+  description       String?
+  descriptionFa     String?
+  price             Float
+  costPrice         Float?
+  currency          String   @default("USD")
+  images            String   @default("[]")
+  categoryId        Int
+  category          Category @relation(fields: [categoryId], references: [id])
+  sku               String?  @unique
+  quantity          Int      @default(0)
+  lowStockThreshold Int      @default(5)
+  inStock           Boolean  @default(true)
+  featured          Boolean  @default(false)
+  movements         StockMovement[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+// Audit trail of every stock change — restocks, sales, manual adjustments
+// and inventory counts. Append-only; one row per change for verification.
+model StockMovement {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  type      String // restock | sale | adjustment | count | return | damage
+  delta     Int // signed change in units (+ added, - removed)
+  before    Int // quantity before the change
+  after     Int // quantity after the change
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([productId, createdAt])
 }
 
 model AdminUser {

@@ -1,15 +1,19 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { stockStatus, STATUS_META } from "@/lib/inventory";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
-  const [productCount, categoryCount, featuredCount, outOfStockCount] = await Promise.all([
+  const [productCount, categoryCount, featuredCount, outOfStockCount, stockRows] = await Promise.all([
     prisma.product.count(),
     prisma.category.count(),
     prisma.product.count({ where: { featured: true } }),
-    prisma.product.count({ where: { inStock: false } }),
+    prisma.product.count({ where: { quantity: { lte: 0 } } }),
+    prisma.product.findMany({ select: { quantity: true, lowStockThreshold: true } }),
   ]);
+
+  const lowStockCount = stockRows.filter((p) => p.quantity > 0 && p.quantity <= p.lowStockThreshold).length;
 
   const recentProducts = await prisma.product.findMany({
     take: 5, orderBy: { createdAt: "desc" }, include: { category: true },
@@ -19,7 +23,8 @@ export default async function AdminDashboard() {
     { label: "Total Products", value: productCount, icon: "🛍️", color: "#B5532A", href: "/admin/products" },
     { label: "Categories", value: categoryCount, icon: "📂", color: "#6366F1", href: "/admin/categories" },
     { label: "Featured", value: featuredCount, icon: "⭐", color: "#D4A574", href: "/admin/products" },
-    { label: "Out of Stock", value: outOfStockCount, icon: "⚠️", color: "#cc4444", href: "/admin/products" },
+    { label: "Low Stock", value: lowStockCount, icon: "📉", color: "#B5532A", href: "/admin/inventory" },
+    { label: "Out of Stock", value: outOfStockCount, icon: "⚠️", color: "#cc4444", href: "/admin/inventory" },
   ];
 
   return (
@@ -47,6 +52,12 @@ export default async function AdminDashboard() {
           padding: "0.625rem 1.25rem", borderRadius: 8, textDecoration: "none",
           fontWeight: 600, fontSize: 13,
         }}>+ Add Product</Link>
+        <Link href="/admin/inventory" style={{
+          background: "white", color: "#1A1A1A",
+          border: "1px solid var(--border-color)",
+          padding: "0.625rem 1.25rem", borderRadius: 8, textDecoration: "none",
+          fontWeight: 500, fontSize: 13,
+        }}>📦 Manage Inventory</Link>
         <Link href="/admin/categories" style={{
           background: "white", color: "#1A1A1A",
           border: "1px solid var(--border-color)",
@@ -69,7 +80,7 @@ export default async function AdminDashboard() {
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "#fafafa" }}>
-                {["Name", "Category", "Price", "Stock"].map((h) => (
+                {["Name", "Category", "Price", "On Hand"].map((h) => (
                   <th key={h} style={{ padding: "0.75rem 1rem", textAlign: "left", fontSize: 12, fontWeight: 600, color: "var(--muted)", letterSpacing: "0.05em", borderBottom: "1px solid var(--border-color)" }}>{h}</th>
                 ))}
               </tr>
@@ -83,9 +94,17 @@ export default async function AdminDashboard() {
                   <td style={{ padding: "0.75rem 1rem", fontSize: 13, color: "var(--muted)", borderBottom: "1px solid var(--border-color)" }}>{p.category.name}</td>
                   <td style={{ padding: "0.75rem 1rem", fontSize: 13, fontWeight: 600, color: "var(--primary)", borderBottom: "1px solid var(--border-color)" }}>{p.price.toFixed(2)} {p.currency}</td>
                   <td style={{ padding: "0.75rem 1rem", borderBottom: "1px solid var(--border-color)" }}>
-                    <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 4, background: p.inStock ? "rgba(42,122,42,0.1)" : "rgba(204,68,68,0.1)", color: p.inStock ? "#2a7a2a" : "#cc4444" }}>
-                      {p.inStock ? "In Stock" : "Out of Stock"}
-                    </span>
+                    {(() => {
+                      const sm = STATUS_META[stockStatus(p.quantity, p.lowStockThreshold)];
+                      return (
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                          <strong style={{ fontSize: 13 }}>{p.quantity}</strong>
+                          <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 7px", borderRadius: 4, background: sm.bg, color: sm.color }}>
+                            {sm.label}
+                          </span>
+                        </span>
+                      );
+                    })()}
                   </td>
                 </tr>
               ))}

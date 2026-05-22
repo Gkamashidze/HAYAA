@@ -1,6 +1,8 @@
 // Boundary input validation for the admin API routes.
 // Dependency-free: small, explicit checks that fail fast with clear messages.
 
+import type { MovementType } from "@/types";
+
 export type Validated<T> =
   | { readonly ok: true; readonly data: T }
   | { readonly ok: false; readonly error: string };
@@ -31,6 +33,44 @@ function asPositiveInt(v: unknown, field: string): Validated<number> {
   return { ok: true, data: n };
 }
 
+function asNonNegativeInt(v: unknown, field: string): Validated<number> {
+  const n = Number(v);
+  if (!Number.isInteger(n) || n < 0) {
+    return fail(`${field} must be a non-negative integer`);
+  }
+  if (n > 1_000_000) return fail(`${field} exceeds the maximum of 1,000,000`);
+  return { ok: true, data: n };
+}
+
+// A signed integer (used for stock deltas, which may add or remove units).
+function asInteger(v: unknown, field: string): Validated<number> {
+  const n = Number(v);
+  if (!Number.isInteger(n)) return fail(`${field} must be an integer`);
+  if (Math.abs(n) > 1_000_000) return fail(`${field} is out of range`);
+  return { ok: true, data: n };
+}
+
+// Optional money value (>= 0) — null when omitted or blank.
+function asOptionalMoney(v: unknown, field: string): Validated<number | null> {
+  if (v === undefined || v === null || v === "") return { ok: true, data: null };
+  const n = Number(v);
+  if (!Number.isFinite(n) || n < 0) return fail(`${field} must be zero or a positive number`);
+  return { ok: true, data: n };
+}
+
+// Optional SKU — null when blank; trimmed; alphanumerics, hyphen, underscore.
+function asOptionalSku(v: unknown): Validated<string | null> {
+  if (v === undefined || v === null) return { ok: true, data: null };
+  if (typeof v !== "string") return fail("sku must be a string");
+  const trimmed = v.trim();
+  if (trimmed.length === 0) return { ok: true, data: null };
+  if (trimmed.length > 64) return fail("sku exceeds 64 characters");
+  if (!/^[A-Za-z0-9._-]+$/.test(trimmed)) {
+    return fail("sku may contain only letters, numbers, dot, hyphen and underscore");
+  }
+  return { ok: true, data: trimmed };
+}
+
 function asImageList(v: unknown): Validated<string[]> {
   if (v === undefined) return { ok: true, data: [] };
   if (!Array.isArray(v)) return fail("images must be an array");
@@ -49,9 +89,13 @@ export interface ProductData {
   readonly description: string | null;
   readonly descriptionFa: string | null;
   readonly price: number;
+  readonly costPrice: number | null;
   readonly currency: string;
   readonly images: string[];
   readonly categoryId: number;
+  readonly sku: string | null;
+  readonly quantity: number;
+  readonly lowStockThreshold: number;
   readonly inStock: boolean;
   readonly featured: boolean;
 }
@@ -86,6 +130,24 @@ export function validateProductCreate(body: unknown): Validated<ProductData> {
   const images = asImageList(b.images);
   if (!images.ok) return images;
 
+  const costPrice = asOptionalMoney(b.costPrice, "costPrice");
+  if (!costPrice.ok) return costPrice;
+
+  const sku = asOptionalSku(b.sku);
+  if (!sku.ok) return sku;
+
+  const quantity =
+    b.quantity === undefined
+      ? ({ ok: true, data: 0 } as const)
+      : asNonNegativeInt(b.quantity, "quantity");
+  if (!quantity.ok) return quantity;
+
+  const lowStockThreshold =
+    b.lowStockThreshold === undefined
+      ? ({ ok: true, data: 5 } as const)
+      : asNonNegativeInt(b.lowStockThreshold, "lowStockThreshold");
+  if (!lowStockThreshold.ok) return lowStockThreshold;
+
   if (b.description !== undefined && b.description !== null) {
     if (typeof b.description !== "string" || b.description.length > 5000) {
       return fail("description must be a string up to 5000 characters");
@@ -98,6 +160,15 @@ export function validateProductCreate(body: unknown): Validated<ProductData> {
     return fail("currency must be a string");
   }
 
+  // When the caller does not set inStock explicitly, derive it from quantity
+  // if a quantity was provided; otherwise default to true.
+  const inStock =
+    b.inStock !== undefined
+      ? b.inStock !== false
+      : b.quantity !== undefined
+        ? quantity.data > 0
+        : true;
+
   return {
     ok: true,
     data: {
@@ -106,10 +177,14 @@ export function validateProductCreate(body: unknown): Validated<ProductData> {
       description: typeof b.description === "string" ? b.description : null,
       descriptionFa: descriptionFa.data,
       price: price.data,
+      costPrice: costPrice.data,
       currency: typeof b.currency === "string" ? b.currency.slice(0, 8) : "USD",
       images: images.data,
       categoryId: categoryId.data,
-      inStock: b.inStock !== false,
+      sku: sku.data,
+      quantity: quantity.data,
+      lowStockThreshold: lowStockThreshold.data,
+      inStock,
       featured: b.featured === true,
     },
   };
@@ -149,6 +224,26 @@ export function validateProductUpdate(
     if (!images.ok) return images;
     out.images = images.data;
   }
+  if (b.costPrice !== undefined) {
+    const costPrice = asOptionalMoney(b.costPrice, "costPrice");
+    if (!costPrice.ok) return costPrice;
+    out.costPrice = costPrice.data;
+  }
+  if (b.sku !== undefined) {
+    const sku = asOptionalSku(b.sku);
+    if (!sku.ok) return sku;
+    out.sku = sku.data;
+  }
+  if (b.quantity !== undefined) {
+    const quantity = asNonNegativeInt(b.quantity, "quantity");
+    if (!quantity.ok) return quantity;
+    out.quantity = quantity.data;
+  }
+  if (b.lowStockThreshold !== undefined) {
+    const lowStockThreshold = asNonNegativeInt(b.lowStockThreshold, "lowStockThreshold");
+    if (!lowStockThreshold.ok) return lowStockThreshold;
+    out.lowStockThreshold = lowStockThreshold.data;
+  }
   if (b.description !== undefined) {
     if (
       b.description !== null &&
@@ -177,6 +272,64 @@ export function validateProductUpdate(
   }
 
   return { ok: true, data: out };
+}
+
+// A stock adjustment from the inventory page.
+//  - mode "delta": add (+) or remove (-) `value` units from the current quantity.
+//  - mode "set":   set the absolute on-hand quantity to `value` (a stock count).
+export interface StockAdjustData {
+  readonly mode: "delta" | "set";
+  readonly value: number;
+  readonly type: MovementType;
+  readonly note: string | null;
+}
+
+const MOVEMENT_TYPE_VALUES: readonly MovementType[] = [
+  "restock",
+  "sale",
+  "adjustment",
+  "count",
+  "return",
+  "damage",
+];
+
+export function validateStockAdjust(body: unknown): Validated<StockAdjustData> {
+  if (typeof body !== "object" || body === null) {
+    return fail("Request body must be a JSON object");
+  }
+  const b = body as Record<string, unknown>;
+
+  const mode = b.mode;
+  if (mode !== "delta" && mode !== "set") {
+    return fail('mode must be "delta" or "set"');
+  }
+
+  const value = asInteger(b.value, "value");
+  if (!value.ok) return value;
+  if (mode === "set" && value.data < 0) {
+    return fail("value must be zero or positive when setting an absolute count");
+  }
+  if (mode === "delta" && value.data === 0) {
+    return fail("value must not be zero for a delta adjustment");
+  }
+
+  const type = b.type;
+  if (!MOVEMENT_TYPE_VALUES.includes(type as MovementType)) {
+    return fail(`type must be one of: ${MOVEMENT_TYPE_VALUES.join(", ")}`);
+  }
+
+  const note = asOptionalString(b.note, "note", 500);
+  if (!note.ok) return note;
+
+  return {
+    ok: true,
+    data: {
+      mode,
+      value: value.data,
+      type: type as MovementType,
+      note: note.data,
+    },
+  };
 }
 
 export interface CategoryData {

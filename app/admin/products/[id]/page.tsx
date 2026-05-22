@@ -32,11 +32,15 @@ export default async function EditProductPage({ params }: Params) {
             description: product.description ?? "",
             descriptionFa: product.descriptionFa ?? "",
             price: String(product.price),
+            costPrice: product.costPrice != null ? String(product.costPrice) : "",
             currency: product.currency,
             categoryId: String(product.categoryId),
             inStock: product.inStock,
             featured: product.featured,
             images: product.images,
+            sku: product.sku ?? "",
+            quantity: String(product.quantity),
+            lowStockThreshold: String(product.lowStockThreshold),
           }}
         />
       </div>

@@ -3,13 +3,15 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 
 interface Category { id: number; name: string; }
 interface ProductFormData {
   name: string; nameFa: string;
   description: string; descriptionFa: string;
-  price: string; currency: string;
+  price: string; costPrice: string; currency: string;
   categoryId: string; inStock: boolean; featured: boolean; images: string[];
+  sku: string; quantity: string; lowStockThreshold: string;
 }
 
 interface Props {
@@ -29,11 +31,15 @@ export default function ProductForm({ initialData, mode }: Props) {
     description: initialData?.description ?? "",
     descriptionFa: initialData?.descriptionFa ?? "",
     price: initialData?.price ?? "",
+    costPrice: initialData?.costPrice ?? "",
     currency: initialData?.currency ?? "USD",
     categoryId: initialData?.categoryId ?? "",
     inStock: initialData?.inStock ?? true,
     featured: initialData?.featured ?? false,
     images: initialData?.images ?? [],
+    sku: initialData?.sku ?? "",
+    quantity: initialData?.quantity ?? "0",
+    lowStockThreshold: initialData?.lowStockThreshold ?? "5",
   });
 
   useEffect(() => {
@@ -64,13 +70,22 @@ export default function ProductForm({ initialData, mode }: Props) {
     setSaving(true);
     setError("");
     try {
-      const payload = {
+      const payload: Record<string, unknown> = {
         ...form,
         price: Number(form.price),
+        costPrice: form.costPrice.trim() === "" ? null : Number(form.costPrice),
         categoryId: Number(form.categoryId),
         nameFa: form.nameFa.trim() || null,
         descriptionFa: form.descriptionFa.trim() || null,
+        sku: form.sku.trim() || null,
+        lowStockThreshold: Number(form.lowStockThreshold),
       };
+      // On edit, stock changes go through the audited Inventory page only.
+      if (mode === "create") {
+        payload.quantity = Number(form.quantity);
+      } else {
+        delete payload.quantity;
+      }
       const url = mode === "edit" ? `/api/products/${initialData?.id}` : "/api/products";
       const method = mode === "edit" ? "PUT" : "POST";
       const res = await fetch(url, {
@@ -137,6 +152,44 @@ export default function ProductForm({ initialData, mode }: Props) {
             <option value="USD">USD ($)</option>
             <option value="EUR">EUR (€)</option>
           </select>
+        </div>
+
+        {/* Inventory */}
+        <div style={{ gridColumn: "1 / -1", borderTop: "1px solid var(--border-color)", paddingTop: "1.25rem", marginTop: "0.25rem" }}>
+          <h3 style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>Inventory</h3>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem" }}>
+            <div>
+              <label style={labelStyle}>SKU</label>
+              <input style={inputStyle} value={form.sku} onChange={(e) => set("sku", e.target.value)} placeholder="e.g. ABYA-BLK-M" />
+            </div>
+            <div>
+              <label style={labelStyle}>Cost Price</label>
+              <input style={inputStyle} type="number" step="0.01" min="0" value={form.costPrice} onChange={(e) => set("costPrice", e.target.value)} placeholder="0.00" />
+            </div>
+            {mode === "create" ? (
+              <div>
+                <label style={labelStyle}>Opening Stock</label>
+                <input style={inputStyle} type="number" step="1" min="0" value={form.quantity} onChange={(e) => set("quantity", e.target.value)} placeholder="0" />
+              </div>
+            ) : (
+              <div>
+                <label style={labelStyle}>On Hand</label>
+                <div style={{ ...inputStyle, background: "#f5f5f5", color: "var(--muted)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <span>{form.quantity}</span>
+                  <Link href="/admin/inventory" style={{ fontSize: 11, color: "var(--primary)", textDecoration: "none", fontWeight: 600 }}>Manage →</Link>
+                </div>
+              </div>
+            )}
+            <div>
+              <label style={labelStyle}>Low-stock Alert At</label>
+              <input style={inputStyle} type="number" step="1" min="0" value={form.lowStockThreshold} onChange={(e) => set("lowStockThreshold", e.target.value)} placeholder="5" />
+            </div>
+          </div>
+          {mode === "edit" && (
+            <p style={{ fontSize: 11, color: "var(--muted)", marginTop: 8 }}>
+              On-hand quantity is changed from the Inventory page so every change is recorded.
+            </p>
+          )}
         </div>
 
         {/* Category */}

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import type { Product } from "@/types";
+import { stockStatus, STATUS_META } from "@/lib/inventory";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -74,9 +75,17 @@ export default function AdminProductsPage() {
                   <td style={{ padding: "0.75rem 1rem", fontSize: 12, color: "var(--muted)", borderBottom: "1px solid var(--border-color)" }}>{p.category.name}</td>
                   <td style={{ padding: "0.75rem 1rem", fontSize: 13, fontWeight: 600, color: "var(--primary)", borderBottom: "1px solid var(--border-color)" }}>{p.price.toFixed(2)} {p.currency}</td>
                   <td style={{ padding: "0.75rem 1rem", borderBottom: "1px solid var(--border-color)" }}>
-                    <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 4, background: p.inStock ? "rgba(42,122,42,0.1)" : "rgba(204,68,68,0.1)", color: p.inStock ? "#2a7a2a" : "#cc4444" }}>
-                      {p.inStock ? "In Stock" : "Out"}
-                    </span>
+                    {(() => {
+                      const sm = STATUS_META[stockStatus(p.quantity, p.lowStockThreshold)];
+                      return (
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                          <strong style={{ fontSize: 13 }}>{p.quantity}</strong>
+                          <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 7px", borderRadius: 4, background: sm.bg, color: sm.color }}>
+                            {sm.label}
+                          </span>
+                        </span>
+                      );
+                    })()}
                   </td>
                   <td style={{ padding: "0.75rem 1rem", borderBottom: "1px solid var(--border-color)" }}>
                     {p.featured ? <span style={{ fontSize: 15 }}>⭐</span> : <span style={{ color: "#ccc", fontSize: 13 }}>—</span>}
