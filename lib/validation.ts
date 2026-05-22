@@ -219,6 +219,31 @@ export function validateCategoryCreate(body: unknown): Validated<CategoryData> {
   };
 }
 
+// Validates a reorder request: a list of unique positive category ids
+// in the desired display order.
+export function validateCategoryReorder(body: unknown): Validated<number[]> {
+  if (typeof body !== "object" || body === null) {
+    return fail("Request body must be a JSON object");
+  }
+  const order = (body as Record<string, unknown>).order;
+  if (!Array.isArray(order)) return fail("order must be an array of ids");
+  if (order.length === 0) return fail("order must not be empty");
+  if (order.length > 500) return fail("order: max 500 ids allowed");
+
+  const ids: number[] = [];
+  const seen = new Set<number>();
+  for (const item of order) {
+    const n = Number(item);
+    if (!Number.isInteger(n) || n <= 0) {
+      return fail("order must contain positive integer ids");
+    }
+    if (seen.has(n)) return fail("order must not contain duplicate ids");
+    seen.add(n);
+    ids.push(n);
+  }
+  return { ok: true, data: ids };
+}
+
 export function validateCategoryUpdate(
   body: unknown
 ): Validated<Partial<CategoryData>> {

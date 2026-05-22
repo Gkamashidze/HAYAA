@@ -9,7 +9,7 @@ import ProductCard from "@/components/products/ProductCard";
 import type { Product } from "@/types";
 
 async function getCategories() {
-  return prisma.category.findMany({ orderBy: { id: "asc" } });
+  return prisma.category.findMany({ orderBy: [{ sortOrder: "asc" }, { id: "asc" }] });
 }
 
 async function getFeaturedProducts() {

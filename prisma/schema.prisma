@@ -13,6 +13,7 @@ model Category {
   nameFa    String?
   slug      String    @unique
   image     String?
+  sortOrder Int       @default(0)
   products  Product[]
   createdAt DateTime  @default(now())
 }

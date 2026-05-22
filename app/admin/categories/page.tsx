@@ -6,6 +6,17 @@ interface Category { id: number; name: string; nameFa?: string | null; slug: str
 
 const emptyForm = { name: "", nameFa: "", slug: "" };
 
+// Moves the item with id `fromId` to the position currently held by `toId`.
+function reorder(list: Category[], fromId: number, toId: number): Category[] {
+  const fromIdx = list.findIndex((c) => c.id === fromId);
+  const toIdx = list.findIndex((c) => c.id === toId);
+  if (fromIdx === -1 || toIdx === -1 || fromIdx === toIdx) return list;
+  const next = [...list];
+  const [moved] = next.splice(fromIdx, 1);
+  next.splice(toIdx, 0, moved);
+  return next;
+}
+
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -13,6 +24,8 @@ export default function AdminCategoriesPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<number | null>(null);
+  const [dragId, setDragId] = useState<number | null>(null);
+  const [savingOrder, setSavingOrder] = useState(false);
   const [error, setError] = useState("");
 
   const load = useCallback(async () => {
@@ -63,13 +76,43 @@ export default function AdminCategoriesPage() {
     load();
   };
 
+  // Drag-and-drop reordering.
+  const handleDragOver = (e: React.DragEvent, overId: number) => {
+    e.preventDefault();
+    if (dragId === null || dragId === overId) return;
+    setCategories((prev) => reorder(prev, dragId, overId));
+  };
+
+  const persistOrder = async () => {
+    setSavingOrder(true); setError("");
+    const order = categories.map((c) => c.id);
+    const res = await fetch("/api/categories", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ order }),
+    });
+    setSavingOrder(false);
+    if (!res.ok) {
+      const d = await res.json();
+      setError(d.error ?? "Failed to save order");
+      load(); // revert to server order
+    }
+  };
+
+  const handleDragEnd = () => {
+    if (dragId === null) return;
+    setDragId(null);
+    persistOrder();
+  };
+
   const inputStyle = { width: "100%", padding: "0.5rem 0.75rem", borderRadius: 6, border: "1px solid var(--border-color)", fontSize: 13, background: "white" };
+  const thStyle = { padding: "0.75rem 1rem", textAlign: "left" as const, fontSize: 11, fontWeight: 600, color: "var(--muted)", letterSpacing: "0.05em", textTransform: "uppercase" as const, borderBottom: "1px solid var(--border-color)" };
 
   return (
     <div>
       <div style={{ marginBottom: "1.5rem" }}>
         <h1 style={{ fontFamily: "Georgia, serif", fontSize: "1.75rem", fontWeight: 600 }}>Categories</h1>
-        <p style={{ color: "var(--muted)", fontSize: 13, marginTop: 2 }}>Manage product categories</p>
+        <p style={{ color: "var(--muted)", fontSize: 13, marginTop: 2 }}>Manage product categories — drag rows to reorder</p>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "1.5rem", alignItems: "start" }}>
@@ -117,14 +160,27 @@ export default function AdminCategoriesPage() {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ background: "#fafafa" }}>
-                  {["Name", "Slug", "Products", "Actions"].map((h) => (
-                    <th key={h} style={{ padding: "0.75rem 1rem", textAlign: "left", fontSize: 11, fontWeight: 600, color: "var(--muted)", letterSpacing: "0.05em", textTransform: "uppercase", borderBottom: "1px solid var(--border-color)" }}>{h}</th>
-                  ))}
+                  <th style={{ ...thStyle, width: 36 }} aria-label="Reorder" />
+                  <th style={thStyle}>Name</th>
+                  <th style={thStyle}>Slug</th>
+                  <th style={thStyle}>Products</th>
+                  <th style={thStyle}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {categories.map((cat) => (
-                  <tr key={cat.id} style={{ background: editingId === cat.id ? "rgba(181,83,42,0.06)" : "transparent" }}>
+                  <tr
+                    key={cat.id}
+                    draggable
+                    onDragStart={() => setDragId(cat.id)}
+                    onDragOver={(e) => handleDragOver(e, cat.id)}
+                    onDragEnd={handleDragEnd}
+                    style={{
+                      background: editingId === cat.id ? "rgba(181,83,42,0.06)" : "transparent",
+                      opacity: dragId === cat.id ? 0.4 : 1,
+                    }}
+                  >
+                    <td title="Drag to reorder" style={{ padding: "0.75rem 0.5rem 0.75rem 1rem", borderBottom: "1px solid var(--border-color)", cursor: "grab", color: "#bbb", fontSize: 16, userSelect: "none", textAlign: "center" }}>⠿</td>
                     <td style={{ padding: "0.75rem 1rem", fontSize: 13, fontWeight: 500, borderBottom: "1px solid var(--border-color)" }}>{cat.name}</td>
                     <td style={{ padding: "0.75rem 1rem", fontSize: 12, color: "var(--muted)", fontFamily: "monospace", borderBottom: "1px solid var(--border-color)" }}>{cat.slug}</td>
                     <td style={{ padding: "0.75rem 1rem", fontSize: 13, borderBottom: "1px solid var(--border-color)" }}>
@@ -152,6 +208,7 @@ export default function AdminCategoriesPage() {
               </tbody>
             </table>
           )}
+          {savingOrder && <div style={{ padding: "0.5rem 1rem", fontSize: 12, color: "var(--muted)", borderTop: "1px solid var(--border-color)" }}>Saving order…</div>}
         </div>
       </div>
     </div>
